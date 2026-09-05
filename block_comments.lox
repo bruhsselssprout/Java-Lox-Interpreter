@@ -1,0 +1,34 @@
+// Block comment scanner test.
+// Tests for multiple edge cases.
+// Only var declarations should show up.
+
+var before = 1;
+
+/* Single-line block comment. */
+var afterSingle = 2;
+
+/* Multiline block comment.
+   This comment contains a newline.
+   It should produce no tokens.
+*/
+var afterMulti = 3;
+
+/* Outer comment starts here.
+   /* Nested comment starts here. */
+   The outer comment continues after the nested comment.
+*/
+var afterNested = 4;
+
+/* Level 1
+   /* Level 2
+      /* Level 3 */
+      Back to level 2.
+   */
+   Back to level 1.
+*/
+var afterDeep = 5;
+
+/* Inline comment */ var afterInline = 6;
+
+// Division should still produce a SLASH token.
+var quotient = 8 / 2;
