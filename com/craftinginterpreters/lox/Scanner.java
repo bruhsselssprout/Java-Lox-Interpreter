@@ -89,6 +89,8 @@ class Scanner {
                 if (match('/')) {
                     // A comment goes until the end of the line.
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    blockComment();
                 } else {
                     addToken(SLASH);
                 }
@@ -118,6 +120,31 @@ class Scanner {
                     Lox.error(line, "Unexpected character.");
                 }
                 break;
+        }
+    }
+
+    // CHALLENGE 4.4: Add Support to Lox's Scanner for Nested Block Comments
+    // Scans a block comment from the source code, handling nested comments.
+    // If the comment is unterminated, reports an error.
+    private void blockComment() {
+        int depth = 1;
+
+        while (depth > 0 && !isAtEnd()) {
+            char c = advance();
+
+            if (c == '\n') {
+                line++;
+            } else if (c == '/' && peek() == '*') {
+                advance();
+                depth++;
+            } else if (c == '*' && peek() == '/') {
+                advance();
+                depth--;
+            }
+        }
+
+        if (depth > 0) {
+            Lox.error(line, "Unterminated block comment.");
         }
     }
 
