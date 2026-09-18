@@ -22,18 +22,38 @@ class Parser {
         }
     }
 
-    // Challenge 6.1 - Modified the grammar to allow for comma-separated expressions. The new rule is:
-    // expression     → equality ( "," equality )* ;
+    // Challenge 6.1 - Added support for comma expressions.
+    // Initially:   expression  → equality ;
+    // Modified to: expression  → expression ( "," expression )* ;
+
+    // Challenge 6.2 - Added support for conditional expressions.
+    // Initially:   expression  → expression ( "," expression )* ;
+    // Modified to: expression  → conditional ( "," conditional )* ;
     private Expr expression() {
-        Expr expr = equality();
+        Expr expr = conditional();
 
         while (match(COMMA)) {
             Token operator = previous();
-            Expr right = equality();
+            Expr right = conditional();
             expr = new Expr.Binary(expr, operator, right);
         }
 
         return expr;
+    }
+
+    // Challenge 6.2 - Added conditional()
+    // conditional   → equality ( "?" expression ":" conditional )? ;
+    private Expr conditional() {
+        Expr condition = equality();
+
+        if (match(QUESTION)) {
+            Expr thenBranch = expression();
+            consume(COLON, "Expect ':' after then branch of conditional expression.");
+            Expr elseBranch = conditional();
+            return new Expr.Conditional(condition, thenBranch, elseBranch);
+        }
+
+        return condition;
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
