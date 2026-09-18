@@ -29,7 +29,16 @@ class Parser {
     // Challenge 6.2 - Added support for conditional expressions.
     // Initially:   expression  → expression ( "," expression )* ;
     // Modified to: expression  → conditional ( "," conditional )* ;
+
+    // Challenge 6.3 - Added error productions for each binary operators below
+    // Handles binary operators without a left-hand operand
     private Expr expression() {
+        if (match(COMMA)) {
+            reportError(previous(), "Expect expression before ','.");
+            conditional();
+            return null;
+        }
+
         Expr expr = conditional();
 
         while (match(COMMA)) {
@@ -58,6 +67,12 @@ class Parser {
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     private Expr equality() {
+        if (match(BANG_EQUAL, EQUAL_EQUAL)) {
+            reportError(previous(), "Expect expression before operator.");
+            comparison();
+            return null;
+        }
+
         Expr expr = comparison();
 
         while (match(BANG_EQUAL, EQUAL_EQUAL)) {
@@ -71,6 +86,12 @@ class Parser {
 
     // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     private Expr comparison() {
+        if (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
+            reportError(previous(), "Expect expression before operator.");
+            term();
+            return null;
+        }
+
         Expr expr = term();
 
         while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
@@ -84,6 +105,12 @@ class Parser {
 
     // term           → factor ( ( "-" | "+" ) factor )* ;
     private Expr term() {
+        if (match(MINUS, PLUS)) {
+            reportError(previous(), "Expect expression before operator.");
+            factor();
+            return null;
+        }
+
         Expr expr = factor();
 
         while (match(MINUS, PLUS)) {
@@ -97,6 +124,12 @@ class Parser {
 
     // factor         → unary ( ( "/" | "*" ) unary )* ;
     private Expr factor() {
+        if (match(SLASH, STAR)) {
+            reportError(previous(), "Expect expression before operator.");
+            unary();
+            return null;
+        }
+
         Expr expr = unary();
 
         while (match(SLASH, STAR)) {
@@ -187,6 +220,11 @@ class Parser {
     private ParseError error(Token token, String message) {
         Lox.error(token, message);
         return new ParseError();
+    }
+
+    // Challenge 6.3 - Added reportError() to report errors for error productions
+    private void reportError(Token token, String message) {
+        Lox.error(token, message);
     }
 
     // Synchronize the parser after an error.
