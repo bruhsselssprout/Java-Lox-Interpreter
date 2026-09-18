@@ -22,9 +22,18 @@ class Parser {
         }
     }
 
-    // expression     → equality ;
+    // Challenge 6.1 - Modified the grammar to allow for comma-separated expressions. The new rule is:
+    // expression     → equality ( "," equality )* ;
     private Expr expression() {
-        return equality();
+        Expr expr = equality();
+
+        while (match(COMMA)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
