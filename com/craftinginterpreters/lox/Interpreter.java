@@ -116,8 +116,9 @@ public class Interpreter implements Expr.Visitor<Object> {
                     return (double)left + (double)right;
                 }
 
-                if (left instanceof String && right instanceof String) {
-                    return (String)left + (String)right;
+                // Challenge 7.2 - Handle concatenation to string if either left or right operand are a string
+                if (left instanceof String || right instanceof String) {
+                    return stringify(left) + stringify(right);
                 }
 
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
