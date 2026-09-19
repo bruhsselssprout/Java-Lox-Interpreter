@@ -155,15 +155,16 @@ public class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    // Challenge 8.2 - Modified variable declaration handling to support uninitialized variables
+    // Now uses Environment.declare for uninitialized variables, allowing reporting of uninitialized variable usage.
     // Visit a variable declaration statement and define the variable in the current environment.
     @Override 
     public Void visitVarStmt(Stmt.Var stmt) {
-        Object value = null;
         if (stmt.initializer != null) {
-            value = evaluate(stmt.initializer);
+            environment.define(stmt.name.lexeme, evaluate(stmt.initializer));
+        } else {
+            environment.declare(stmt.name.lexeme);
         }
-
-        environment.define(stmt.name.lexeme, value);
         return null;
     }
 

@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Environment {
+    // Challenge 8.2 - Sentinel marking a declared but not yet initialized variable.
+    private static final Object UNINITIALIZED = new Object();
+
     final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
 
@@ -19,11 +22,18 @@ class Environment {
         this.enclosing = enclosing;
     }
 
+    // Challenge 8.2 - Modified get to check for uninitialized variables.
+    // Throws a RuntimeError if the variable is uninitialized.
     // Retrieves the value of a variable with the given name.
     // If the variable is not found in the current environment, it checks the enclosing environments recursively.
     Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
-            return values.get(name.lexeme);
+            Object value = values.get(name.lexeme);
+            if (value == UNINITIALIZED) {
+                throw new RuntimeError(name,
+                    "Uninitialized variable '" + name.lexeme + "'.");
+            }
+            return value;
         }
 
         if (enclosing != null) return enclosing.get(name);
@@ -52,5 +62,10 @@ class Environment {
     // Defines a new variable in the current environment. This does not check enclosing environments.
     void define(String name, Object value) {
         values.put(name, value);
+    }
+
+    // Challenge 8.2 - Declares a new variable without a value, marking it as uninitialized until assigned.
+    void declare(String name) {
+        values.put(name, UNINITIALIZED);
     }
 }
