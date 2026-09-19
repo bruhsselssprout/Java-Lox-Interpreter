@@ -43,13 +43,13 @@ public class Lox {
             System.out.print("> ");
             String line = reader.readLine();
             if (line == null) break;
-            run(line);
+            runRepl(line);
             hadError = false;
         }
     }
 
     // Run the scanner and parser on the given source code.
-    // Used by both runFile and runPrompt.
+    // Used by runFile.
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
@@ -61,6 +61,27 @@ public class Lox {
 
         // Evaluate the expression and print the result.
         interpreter.interpret(statements);
+    }
+
+    // Challenge 8.1 - REPL support
+    // Run the scanner and parser on the given source code, allowing a single
+    // bare expression to be evaluated and its result printed. Used by runPrompt.
+    private static void runRepl(String source) {
+        Scanner scanner = new Scanner(source);
+        List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Object result = parser.parseRepl();
+
+        // Stop if there was a syntax error.
+        if (hadError) return;
+
+        if (result instanceof Expr) {
+            interpreter.interpret((Expr) result);
+        } else {
+            @SuppressWarnings("unchecked")
+            List<Stmt> statements = (List<Stmt>) result;
+            interpreter.interpret(statements);
+        }
     }
 
     // Indicate that an error occurred while scanning or parsing.

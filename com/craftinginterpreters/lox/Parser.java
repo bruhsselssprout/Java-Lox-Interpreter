@@ -11,6 +11,12 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    // Challenge 8.1 - Whether a trailing expression without a semicolon is allowed (used by the REPL).
+    private boolean allowExpression;
+
+    // Challenge 8.1 - Set to true when the parsed program is a single bare expression.
+    private boolean foundExpression = false;
+
     // Constructs a new parser with the given list of tokens.
     Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -21,6 +27,25 @@ class Parser {
         List <Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
             statements.add(declaration());
+        }
+
+        return statements;
+    }
+
+    // Challenge 8.1 - Parses the list of tokens for the REPL, allowing a single bare expression
+    // (with no trailing semicolon) in addition to statements.
+    Object parseRepl() {
+        allowExpression = true;
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(declaration());
+
+            if (foundExpression) {
+                Stmt last = statements.get(statements.size() - 1);
+                return ((Stmt.Expression) last).expression;
+            }
+
+            allowExpression = false;
         }
 
         return statements;
@@ -69,7 +94,7 @@ class Parser {
     }
 
     private Stmt varDeclaration() {
-        Token name = consume(VAR, "Expect variable name.");
+        Token name = consume(IDENTIFIER, "Expect variable name.");
 
         Expr initializer = null;
         if (match(EQUAL)) {
@@ -83,7 +108,13 @@ class Parser {
     // exprStmt      → expression ";" ;
     private Stmt expressionStatement() {
         Expr expr = expression();
-        consume(SEMICOLON, "Expect ';' after expression.");
+
+        if (allowExpression && isAtEnd()) {
+            foundExpression = true;
+        } else {
+            consume(SEMICOLON, "Expect ';' after expression.");
+        }
+
         return new Stmt.Expression(expr);
     }
 

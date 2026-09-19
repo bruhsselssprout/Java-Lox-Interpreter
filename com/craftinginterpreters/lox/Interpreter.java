@@ -17,6 +17,17 @@ public class Interpreter implements Expr.Visitor<Object>,
         }
     }
 
+    // Challenge 8.1 - Added support for interpreting bare expressions in the REPL
+    // Interpret a single bare expression (used by the REPL) and print its value.
+    void interpret(Expr expression) {
+        try {
+            Object value = evaluate(expression);
+            System.out.println(stringify(value));
+        } catch (RuntimeError error) {
+            Lox.runtimeError(error);
+        }
+    }
+
     // Evaluate the given expression and return its value.
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
