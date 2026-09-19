@@ -137,7 +137,7 @@ class Parser {
 
     // varDecl       → "var" IDENTIFIER ( "=" expression )? ";" ;
     private Stmt varDeclaration() {
-        Token name = consume(VAR, "Expect variable name.");
+        Token name = consume(IDENTIFIER, "Expect variable name.");
 
         Expr initializer = null;
         if (match(EQUAL)) {
