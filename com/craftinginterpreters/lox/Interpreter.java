@@ -23,6 +23,20 @@ public class Interpreter implements Expr.Visitor<Object>,
         return expr.value;
     }
 
+    // Visit a logical expression and return its value.
+    @Override 
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
+    }
+
     // Visit a unary expression and return its value.
     @Override 
     public Object visitUnaryExpr(Expr.Unary expr) {
@@ -40,6 +54,7 @@ public class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    // Visit a variable expression and return its value.
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         return environment.get(expr.name);
@@ -136,6 +151,17 @@ public class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    // Visit an if statement and execute the appropriate branch based on the condition.
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+        return null;
+    }
+
     // Visit a print statement and evaluate its contained expression, then print the result.
     @Override 
     public Void visitPrintStmt(Stmt.Print stmt) {
@@ -153,6 +179,15 @@ public class Interpreter implements Expr.Visitor<Object>,
         }
 
         environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    // Visit a while statement and repeatedly execute its body as long as the condition is truthy.
+    @Override 
+    public Void visitWhileStmt(Stmt.While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body);
+        }
         return null;
     }
 
