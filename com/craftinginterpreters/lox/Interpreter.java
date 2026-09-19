@@ -1,12 +1,17 @@
 package com.craftinginterpreters.lox;
 
-public class Interpreter implements Expr.Visitor<Object> {
-    
+import java.util.List;
+
+public class Interpreter implements Expr.Visitor<Object>, 
+                                    Stmt.Visitor<Void> {
+    private Environment environment = new Environment();
+
     // Interpret the given expression and print the result.
-    void interpret(Expr expression) {
+    void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
@@ -33,6 +38,11 @@ public class Interpreter implements Expr.Visitor<Object> {
 
         // unreachable
         return null;
+    }
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return environment.get(expr.name);
     }
 
     // Check if the operand is a number, and throw a RuntimeError if it is not.
@@ -89,7 +99,73 @@ public class Interpreter implements Expr.Visitor<Object> {
         return expr.accept(this);
     }
 
+    // Execute the given statement.
+    // This will dispatch to the appropriate visit method for the statement type.
+    private void execute(Stmt stmt) {
+        stmt.accept(this);
+    }
+
+    // Execute a block of statements within a new environment (scope).
+    // This ensures that variables declared within the block do not leak into the outer scope.
+    void executeBlock(List<Stmt> statements,
+                      Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    // Visit a block statement and execute its contained statements within a new environment.
+    // This ensures that variables declared within the block do not leak into the outer scope.
+    @Override 
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
+    // Visit an expression statement and evaluate its contained expression.
+    @Override 
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    // Visit a print statement and evaluate its contained expression, then print the result.
+    @Override 
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    // Visit a variable declaration statement and define the variable in the current environment.
+    @Override 
+    public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+
+        environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    // Visit an assignment expression and assign the evaluated value to the variable in the current environment.
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr) {
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
+    }
+
     // Visit a binary expression and return its value.
+    // This handles arithmetic, comparison, and equality operations.
     @Override 
     public Object visitBinaryExpr(Expr.Binary expr) {
         Object left = evaluate(expr.left);

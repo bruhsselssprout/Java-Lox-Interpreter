@@ -1,5 +1,6 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -10,21 +11,98 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    // Constructs a new parser with the given list of tokens.
     Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
 
-    Expr parse() {
+    // Parses the list of tokens and returns a list of statements representing the program.
+    List<Stmt> parse() {
+        List <Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        return statements;
+    }
+
+    // expression     → assignment ;
+    private Expr expression() {
+        return assignment();
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
+    private Stmt declaration() {
         try {
-            return expression();
+            if (match(VAR)) return varDeclaration();
+
+            return statement();
         } catch (ParseError error) {
+            synchronize();
             return null;
         }
     }
 
-    // expression     → equality ;
-    private Expr expression() {
-        return equality();
+    // statement     → exprStmt | printStmt ;
+    private Stmt statement() {
+        if (match(PRINT)) return printStatement();
+        if (match(LEFT_BRACE)) return new Stmt.Block(block());
+
+        return expressionStatement();
+    }
+
+    // printStmt     → "print" expression ";" ;
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt varDeclaration() {
+        Token name = consume(VAR, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
+    // exprStmt      → expression ";" ;
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
 
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -90,7 +168,7 @@ class Parser {
         return primary();
     }
 
-    // primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+    // primary        → NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER | "(" expression ")" ;
     private Expr primary() {
         if (match(FALSE)) return new Expr.Literal(false);
         if (match(TRUE)) return new Expr.Literal(true);
@@ -98,6 +176,10 @@ class Parser {
 
         if (match(NUMBER, STRING)) {
             return new Expr.Literal(previous().literal);
+        }
+
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
 
         if (match(LEFT_PAREN)) {
