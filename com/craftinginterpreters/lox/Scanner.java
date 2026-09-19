@@ -16,9 +16,11 @@ class Scanner {
 
     private static final Map<String, TokenType> keywords;
 
+    // Challenge 9.3 - Added Break statement support
     static {
         keywords = new HashMap<>();
         keywords.put("and",    AND);
+        keywords.put("break",  BREAK);
         keywords.put("class",  CLASS);
         keywords.put("else",   ELSE);
         keywords.put("false",  FALSE);

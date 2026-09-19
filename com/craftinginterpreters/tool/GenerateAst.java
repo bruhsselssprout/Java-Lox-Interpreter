@@ -22,8 +22,10 @@ public class GenerateAst {
             "Variable   : Token name"
         ));
 
+        // Challenge 9.3 - Added Break statement support
         defineAst(outputDir, "Stmt", Arrays.asList(
             "Block      : List<Stmt> statements",
+            "Break      : Token keyword",
             "Expression : Expr expression",
             "If         : Expr condition, Stmt thenBranch," +
                         " Stmt elseBranch",

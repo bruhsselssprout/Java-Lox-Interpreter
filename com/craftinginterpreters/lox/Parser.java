@@ -12,6 +12,10 @@ class Parser {
     private final List<Token> tokens;
     private int current = 0;
 
+    // Challenge 9.3 - Added Break statement support
+    // Tracks the current loop depth to validate 'break' statements.
+    private int loopDepth = 0;
+
     // Constructs a new parser with the given list of tokens.
     Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -56,8 +60,11 @@ class Parser {
         }
     }
 
-    // statement     → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
+    // Challenge 9.3 - Added Break statement support
+    // Before:  statement     → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
+    // After:   statement     → exprStmt | forStmt | ifStmt | breakStmt | printStmt | whileStmt | block ;
     private Stmt statement() {
+        if (match(BREAK)) return breakStatement();
         if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -65,6 +72,18 @@ class Parser {
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
 
         return expressionStatement();
+    }
+
+    // Challenge 9.3 - Added Break statement support
+    // Validates that 'break' statements are only used within loops.
+    // breakStmt      → "break" ";" ;
+    private Stmt breakStatement() {
+        Token keyword = previous();
+        if (loopDepth == 0) {
+            error(keyword, "Must be inside a loop to use 'break'.");
+        }
+        consume(SEMICOLON, "Expect ';' after 'break'.");
+        return new Stmt.Break(keyword);
     }
 
     // forStmt      → "for" "(" ( varDecl | exprStmt | ";" )
@@ -93,7 +112,14 @@ class Parser {
             increment = expression();
         }
         consume(RIGHT_PAREN, "Expect ')' after for clauses.");
-        Stmt body = statement();
+
+        loopDepth++;
+        Stmt body;
+        try {
+            body = statement();
+        } finally {
+            loopDepth--;
+        }
 
         if (increment != null) {
             body = new Stmt.Block(
@@ -153,7 +179,14 @@ class Parser {
         consume(LEFT_PAREN, "Expect '(' after 'while'.");
         Expr condition = expression();
         consume(RIGHT_PAREN, "Expect ')' after condition.");
-        Stmt body = statement();
+
+        loopDepth++;
+        Stmt body;
+        try {
+            body = statement();
+        } finally {
+            loopDepth--;
+        }
 
         return new Stmt.While(condition, body);
     }
@@ -346,6 +379,7 @@ class Parser {
         return new ParseError();
     }
 
+    // Challenge 9.3 - Added Break statement support
     // Synchronize the parser after an error.
     // This method is used to recover from errors and continue parsing.
     private void synchronize() {
@@ -363,6 +397,7 @@ class Parser {
                 case WHILE:
                 case PRINT:
                 case RETURN:
+                case BREAK:
                     return;
             }
             

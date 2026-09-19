@@ -4,6 +4,11 @@ import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, 
                                     Stmt.Visitor<Void> {
+    
+    // Challenge 9.3 - Added Break statement support
+    // This exception is used to handle 'break' statements within loops.
+    private static class BreakException extends RuntimeException {}
+
     private Environment environment = new Environment();
 
     // Interpret the given expression and print the result.
@@ -182,13 +187,25 @@ public class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    // Challenge 9.3 - Added Break statement support
     // Visit a while statement and repeatedly execute its body as long as the condition is truthy.
     @Override 
     public Void visitWhileStmt(Stmt.While stmt) {
-        while (isTruthy(evaluate(stmt.condition))) {
-            execute(stmt.body);
+        try {
+            while (isTruthy(evaluate(stmt.condition))) {
+                execute(stmt.body);
+            }
+        } catch (BreakException error) {
+            // break out of the loop
         }
         return null;
+    }
+
+    // Challenge 9.3 - Added Break statement support
+    // Visit a break statement and unwind execution to the nearest enclosing loop.
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        throw new BreakException();
     }
 
     // Visit an assignment expression and assign the evaluated value to the variable in the current environment.
