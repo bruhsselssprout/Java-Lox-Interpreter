@@ -47,7 +47,10 @@ class Parser {
     // declaration   → funDecl | varDecl | statement ;
     private Stmt declaration() {
         try {
-            if (match(FUN)) return function("function");
+            if (check(FUN) && !checkNext(LEFT_PAREN)) {
+                advance();
+                return function("function");
+            }
             if (match(VAR)) return varDeclaration();
 
             return statement();
@@ -348,6 +351,12 @@ class Parser {
             return new Expr.Literal(previous().literal);
         }
 
+        // Challenge 10.2 - Implement anonymous function syntax
+        // If we encounter the 'fun' keyword, it indicates the start of an anonymous function expression.
+        if (match(FUN)) {
+            return functionExpression();
+        }
+
         if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
         }
@@ -362,6 +371,28 @@ class Parser {
         // We throw a ParseError to indicate that an error has occurred during parsing. 
         // The error message specifies that we expected an expression at the current token.
         throw error(peek(), "Expect expression.");
+    }
+
+    // Challenge 10.2 - Implement anonymous function syntax
+    // Parses an anonymous function expression and returns an Expr.Function node.
+    private Expr functionExpression() {
+        consume(LEFT_PAREN, "Expect '(' after 'fun'.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.add(
+                    consume(IDENTIFIER, "Expect parameter name."));
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(LEFT_BRACE, "Expect '{' before function body.");
+        List<Stmt> body = block();
+        return new Expr.Function(parameters, body);
     }
 
     // Helper methods for parsing.
@@ -386,6 +417,13 @@ class Parser {
     private boolean check(TokenType type) {
         if (isAtEnd()) return false;
         return peek().type == type;
+    }
+
+    // Challenge 10.2 - Implement anonymous function syntax
+    // Checks if the next token matches the given type without consuming it.
+    private boolean checkNext(TokenType type) {
+        if (current + 1 >= tokens.size()) return false;
+        return tokens.get(current + 1).type == type;
     }
 
     private Token advance() {
