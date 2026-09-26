@@ -60,6 +60,7 @@ abstract class Expr {
         final Token paren;
         final List<Expr> arguments;
     }
+    // Challenge 10.2 - Implement anonymous function syntax
     static class Function extends Expr {
         Function(List<Token> params, List<Stmt> body) {
             this.params = params;

@@ -47,6 +47,7 @@ class Parser {
     // declaration   → funDecl | varDecl | statement ;
     private Stmt declaration() {
         try {
+            // If the next token is 'fun' but not followed by '(', it indicates a named function declaration.
             if (check(FUN) && !checkNext(LEFT_PAREN)) {
                 advance();
                 return function("function");
@@ -352,7 +353,6 @@ class Parser {
         }
 
         // Challenge 10.2 - Implement anonymous function syntax
-        // If we encounter the 'fun' keyword, it indicates the start of an anonymous function expression.
         if (match(FUN)) {
             return functionExpression();
         }

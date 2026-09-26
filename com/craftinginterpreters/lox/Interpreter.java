@@ -128,7 +128,6 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     // Challenge 10.2 - Implement anonymous function syntax
-    // visitFunctionExpr handles the evaluation of anonymous function expressions.
     @Override
     public Object visitFunctionExpr(Expr.Function expr) {
         return new LoxFunction(expr, environment);

@@ -10,7 +10,7 @@ class LoxFunction implements LoxCallable {
 
 
     // Challenge 10.2 - Implement anonymous function syntax
-    // Modified constructor to handle named functions.
+    // Modified constructor for named functions
     LoxFunction(Stmt.Function declaration, Environment closure) {
         this(declaration.name.lexeme, declaration.params, declaration.body, closure);
     }
