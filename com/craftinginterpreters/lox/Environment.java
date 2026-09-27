@@ -8,6 +8,8 @@ import java.util.Map;
 class Environment {
     final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
+
+    // Challenge 11.4 - Index local variables for fast access and efficient environment representation.
     private final List<Object> locals = new ArrayList<>();
 
     // Creates a new environment with no enclosing environment (global scope).
@@ -52,6 +54,8 @@ class Environment {
             "Undefined variable '" + name.lexeme + "'.");
     }
 
+    // Challenge 11.4 - Index local variables for fast access and efficient environment representation.
+    // Local variables are stored in a list for fast access by index.
     // Defines a new variable in the current environment. This does not check enclosing environments.
     void define(String name, Object value) {
         if (enclosing == null) {
@@ -70,10 +74,14 @@ class Environment {
         return environment;
     }
 
+    // Challenge 11.4 - Index local variables for fast access and efficient environment representation.
+    // Retrieves the value of a local variable at the given distance and index.
     Object getAt(int distance, int index) {
         return ancestor(distance).locals.get(index);
     }
 
+    // Challenge 11.4 - Index local variables for fast access and efficient environment representation.
+    // Assigns a new value to a local variable at the given distance and index.
     void assignAt(int distance, int index, Object value) {
         ancestor(distance).locals.set(index, value);
     }

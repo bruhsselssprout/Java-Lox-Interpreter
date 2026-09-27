@@ -9,6 +9,9 @@ public class Interpreter implements Expr.Visitor<Object>,
                                     Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment environment = globals;
+
+    // Challenge 11.4 - Index local variables for fast access and efficient environment representation.
+    // Maps expressions to their corresponding local variable information.
     private final Map<Expr, Local> locals = new HashMap<>();
 
     private static class Local {
