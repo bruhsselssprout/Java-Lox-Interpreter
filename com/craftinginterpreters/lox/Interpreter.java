@@ -9,7 +9,17 @@ public class Interpreter implements Expr.Visitor<Object>,
                                     Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment environment = globals;
-    private final Map<Expr, Integer> locals = new HashMap<>();
+    private final Map<Expr, Local> locals = new HashMap<>();
+
+    private static class Local {
+        final int depth;
+        final int index;
+
+        Local(int depth, int index) {
+            this.depth = depth;
+            this.index = index;
+        }
+    }
 
     Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -82,9 +92,9 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     private Object lookUpVariable(Token name, Expr expr) {
-        Integer distance = locals.get(expr);
-        if (distance != null) {
-            return environment.getAt(distance, name.lexeme);
+        Local local = locals.get(expr);
+        if (local != null) {
+            return environment.getAt(local.depth, local.index);
         } else {
             return globals.get(name);
         }
@@ -150,8 +160,8 @@ public class Interpreter implements Expr.Visitor<Object>,
         stmt.accept(this);
     }
 
-    void resolve(Expr expr, int depth) {
-        locals.put(expr, depth);
+    void resolve(Expr expr, int depth, int index) {
+        locals.put(expr, new Local(depth, index));
     }
 
     // Execute a block of statements within a new environment (scope).
@@ -246,9 +256,9 @@ public class Interpreter implements Expr.Visitor<Object>,
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
         
-        Integer distance = locals.get(expr);
-        if (distance != null) {
-            environment.assignAt(distance, expr.name, value);
+        Local local = locals.get(expr);
+        if (local != null) {
+            environment.assignAt(local.depth, local.index, value);
         } else {
             globals.assign(expr.name, value);
         }

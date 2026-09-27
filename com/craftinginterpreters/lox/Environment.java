@@ -1,11 +1,14 @@
 package com.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class Environment {
     final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
+    private final List<Object> locals = new ArrayList<>();
 
     // Creates a new environment with no enclosing environment (global scope).
     // This is typically used for the global scope.
@@ -51,7 +54,11 @@ class Environment {
 
     // Defines a new variable in the current environment. This does not check enclosing environments.
     void define(String name, Object value) {
-        values.put(name, value);
+        if (enclosing == null) {
+            values.put(name, value);
+        } else {
+            locals.add(value);
+        }
     }
 
     Environment ancestor(int distance) {
@@ -63,11 +70,11 @@ class Environment {
         return environment;
     }
 
-    Object getAt(int distance, String name) {
-        return ancestor(distance).values.get(name);
+    Object getAt(int distance, int index) {
+        return ancestor(distance).locals.get(index);
     }
 
-    void assignAt(int distance, Token name, Object value) {
-        ancestor(distance).values.put(name.lexeme, value);
+    void assignAt(int distance, int index, Object value) {
+        ancestor(distance).locals.set(index, value);
     }
 }

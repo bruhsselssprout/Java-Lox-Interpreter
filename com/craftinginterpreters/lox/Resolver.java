@@ -33,10 +33,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     // Variable class for tracking name and usage state.
     private static class Variable {
         final Token name;
+        final int index;
         VariableState state;
 
-        Variable(Token name, VariableState state) {
+        Variable(Token name, int index, VariableState state) {
             this.name = name;
+            this.index = index;
             this.state = state;
         }
     }
@@ -229,7 +231,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                 "Already a variable with this name in this scope.");
         }
 
-        scope.put(name.lexeme, new Variable(name, VariableState.DECLARED));
+        scope.put(name.lexeme,
+            new Variable(name, scope.size(), VariableState.DECLARED));
     }
 
     private void define(Token name) {
@@ -239,8 +242,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private void resolveLocal(Expr expr, Token name) {
         for (int i = scopes.size() - 1; i >= 0; i--) {
-            if (scopes.get(i).containsKey(name.lexeme)) {
-                interpreter.resolve(expr, scopes.size() - 1 - i);
+            Variable variable = scopes.get(i).get(name.lexeme);
+            if (variable != null) {
+                interpreter.resolve(
+                    expr, scopes.size() - 1 - i, variable.index);
                 return;
             }
         }
