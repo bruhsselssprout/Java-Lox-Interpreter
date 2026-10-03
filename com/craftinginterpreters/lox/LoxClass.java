@@ -13,18 +13,33 @@ class LoxClass implements LoxCallable {
         this.superclass = superclass;
         this.name = name;
         this.methods = methods;
+
+        // Challenge 13.2 - Replace super with BETA-style inner functions
+        // Set the declaring class for each method to this class.
+        for (LoxFunction method : methods.values()) {
+            method.setDeclaringClass(this);
+        }
     }
 
     LoxFunction findMethod(String name) {
-        if (methods.containsKey(name)) {
-            return methods.get(name);
-        }
-
         if (superclass != null) {
-            return superclass.findMethod(name);
+            LoxFunction method = superclass.findMethod(name);
+            if (method != null) return method;
         }
 
-        return null;
+        return methods.get(name);
+    }
+
+    // Challenge 13.2 - Replace super with BETA-style inner functions
+    // Find a method in the class hierarchy after the specified declaring class.
+    LoxFunction findMethodAfter(String name, LoxClass declaringClass) {
+        if (this == declaringClass) return null;
+
+        LoxFunction method = superclass == null ? null :
+            superclass.findMethodAfter(name, declaringClass);
+        if (method != null) return method;
+
+        return methods.get(name);
     }
 
     @Override

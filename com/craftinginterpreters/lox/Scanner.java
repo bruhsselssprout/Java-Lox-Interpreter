@@ -29,7 +29,7 @@ class Scanner {
         keywords.put("or",     OR);
         keywords.put("print",  PRINT);
         keywords.put("return", RETURN);
-        keywords.put("super",  SUPER);
+        keywords.put("inner",  INNER); // Challenge 13.2 - Replace super with BETA-style inner functions
         keywords.put("this",   THIS);
         keywords.put("true",   TRUE);
         keywords.put("var",    VAR);

@@ -378,12 +378,13 @@ class Parser {
             return new Expr.Literal(previous().literal);
         }
 
-        if (match(SUPER)) {
+        // Challenge 13.2 - Replace super with BETA-style inner functions
+        // Parse the 'inner' keyword followed by parentheses to create an Expr.Inner node.
+        if (match(INNER)) {
             Token keyword = previous();
-            consume(DOT, "Expect '.' after 'super'.");
-            Token method = consume(IDENTIFIER, 
-                "Expect superclass method name.");
-            return new Expr.Super(keyword, method);
+            consume(LEFT_PAREN, "Expect '(' after 'inner'.");
+            consume(RIGHT_PAREN, "Expect ')' after 'inner('.");
+            return new Expr.Inner(keyword);
         }
 
         if (match(THIS)) return new Expr.This(previous());
@@ -470,6 +471,8 @@ class Parser {
                 case PRINT:
                 case RETURN:
                     return;
+                default:
+                    break;
             }
             
             advance();

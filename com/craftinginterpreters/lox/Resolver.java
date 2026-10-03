@@ -23,8 +23,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum ClassType {
         NONE,
-        CLASS,
-        SUBCLASS
+        CLASS
     }
 
     private ClassType currentClass = ClassType.NONE;
@@ -58,15 +57,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                 "A class can't inherit from itself.");
         }
 
-        if (stmt.superclass != null) {
-            currentClass = ClassType.SUBCLASS;
-            resolve(stmt.superclass);
-        }
-
-        if (stmt.superclass != null) {
-            beginScope();
-            scopes.peek().put("super", true);
-        }
+        if (stmt.superclass != null) resolve(stmt.superclass);
 
         beginScope();
         scopes.peek().put("this", true);
@@ -81,8 +72,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         endScope();
-
-        if (stmt.superclass != null) endScope();
 
         currentClass = enclosingClass;
         return null;
@@ -208,17 +197,16 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
+    // Challenge 13.2 - Replace super with BETA-style inner functions
+    // Resolve the 'inner' expression, ensuring it is used within a method or initializer.
     @Override 
-    public Void visitSuperExpr(Expr.Super expr) {
-        if (currentClass == ClassType.NONE) {
+    public Void visitInnerExpr(Expr.Inner expr) {
+        if (currentFunction != FunctionType.METHOD &&
+            currentFunction != FunctionType.INITIALIZER) {
             Lox.error(expr.keyword,
-                "Can't use 'super' outside of a class.");
-        } else if (currentClass != ClassType.SUBCLASS) {
-            Lox.error(expr.keyword,
-                "Can't use 'super' in a class with no superclass.");
+                "Can't use 'inner' outside of a method.");
         }
 
-        resolveLocal(expr, expr.keyword);
         return null;
     }
 

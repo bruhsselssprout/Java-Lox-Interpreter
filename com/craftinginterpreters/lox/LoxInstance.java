@@ -23,6 +23,12 @@ class LoxInstance {
             "Undefined property '" + name.lexeme + "'.");
     }
 
+    // Challenge 13.2 - Replace super with BETA-style inner functions
+    // Find a method in the class after the specified declaring class.
+    LoxFunction findMethodAfter(String name, LoxClass declaringClass) {
+        return klass.findMethodAfter(name, declaringClass);
+    }
+
     void set(Token name, Object value) {
         fields.put(name.lexeme, value);
     }
