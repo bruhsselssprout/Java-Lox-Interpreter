@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 class LoxInstance {
-    private LoxClass klass;
+    // Challenge 12.1 - Implement "static" methods handling with metaclasses
+    // Protected, not private, so that LoxClass can access it for metaclass handling
+    protected LoxClass klass;
     private final Map<String, Object> fields = new HashMap<>();
 
     LoxInstance(LoxClass klass) {

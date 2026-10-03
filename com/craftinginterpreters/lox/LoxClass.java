@@ -3,11 +3,16 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 import java.util.Map;
 
-class LoxClass implements LoxCallable {
+// Challenge 12.1 - Implement "static" methods handling with metaclasses
+// Extends LoxInstance to handle metaclass functionality for static methods
+class LoxClass extends LoxInstance implements LoxCallable {
     final String name;
     private final Map<String, LoxFunction> methods;
 
-    LoxClass(String name, Map<String, LoxFunction> methods) {
+    // Challenge 12.1 - Implement "static" methods handling with metaclasses
+    // The metaclass parameter allows this class to have a metaclass for handling static methods.
+    LoxClass(LoxClass metaclass, String name, Map<String, LoxFunction> methods) {
+        super(metaclass);
         this.name = name;
         this.methods = methods;
     }

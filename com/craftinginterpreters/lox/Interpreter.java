@@ -197,6 +197,8 @@ public class Interpreter implements Expr.Visitor<Object>,
         return null;
     }
 
+    // Challenge 12.1 - Implement "static" methods handling with metaclasses
+    // Modified classMethods to handle static methods separately from instance methods.
     @Override 
     public Void visitClassStmt(Stmt.Class stmt) {
         environment.define(stmt.name.lexeme, null);
@@ -208,7 +210,16 @@ public class Interpreter implements Expr.Visitor<Object>,
             methods.put(method.name.lexeme, function);
         }
 
-        LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+        // Challenge 12.1 - Implement "static" methods handling with metaclasses
+        // Added handling for static methods by creating a separate map for class methods.
+        Map<String, LoxFunction> classMethods = new HashMap<>();
+        for (Stmt.Function method : stmt.classMethods) {
+            classMethods.put(method.name.lexeme,
+                new LoxFunction(method, environment, false));
+        }
+
+        LoxClass metaclass = new LoxClass(null, stmt.name.lexeme + " metaclass", classMethods);
+        LoxClass klass = new LoxClass(metaclass, stmt.name.lexeme, methods);
         environment.assign(stmt.name, klass);
         return null;
     }

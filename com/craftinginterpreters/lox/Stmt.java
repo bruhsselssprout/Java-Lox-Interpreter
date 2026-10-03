@@ -27,7 +27,8 @@ abstract class Stmt {
         final List<Stmt> statements;
     }
     static class Class extends Stmt {
-        Class(Token name, List<Stmt.Function> methods) {
+        Class(Token name, List<Stmt.Function> methods, List<Stmt.Function> classMethods) {
+            this.classMethods = classMethods;
             this.name = name;
             this.methods = methods;
         }
@@ -39,6 +40,7 @@ abstract class Stmt {
 
         final Token name;
         final List<Stmt.Function> methods;
+        final List<Stmt.Function> classMethods;
     }
     static class Expression extends Stmt {
         Expression(Expr expression) {

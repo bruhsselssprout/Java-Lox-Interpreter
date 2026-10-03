@@ -63,6 +63,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolveFunction(method, declaration);
         }
 
+        // Challenge 12.1 - Implement "static" methods handling with metaclasses
+        // Static methods do not have access to "this", so we do not add "this" to the scope for them.
+        for (Stmt.Function method : stmt.classMethods) {
+            resolveFunction(method, FunctionType.METHOD);
+        }
+
         endScope();
 
         currentClass = enclosingClass;

@@ -64,13 +64,18 @@ class Parser {
         consume(LEFT_BRACE, "Expect '{' before class body.");
 
         List<Stmt.Function> methods = new ArrayList<>();
+
+        // Challenge 12.1 - Implement "static" methods handling with metaclasses
+        // Separate list for static (class) methods
+        List<Stmt.Function> classMethods = new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            methods.add(function("method"));
+            boolean isStatic = match(CLASS);
+            (isStatic ? classMethods : methods).add(function("method"));
         }
 
         consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class(name, methods);
+        return new Stmt.Class(name, methods, classMethods);
     }
 
     // statement     → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
