@@ -22,6 +22,12 @@ class LoxFunction implements LoxCallable {
                                 isInitializer);
     }
 
+    // Challenge 12.2 - Extend Lox to support getter methods
+    // Returns true if this function is a getter method, false otherwise.
+    boolean isGetter() {
+        return declaration.isGetter;
+    }
+
     @Override 
     public String toString() {
         return "<fn " + declaration.name.lexeme + ">";

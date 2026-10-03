@@ -70,7 +70,7 @@ class Parser {
         List<Stmt.Function> classMethods = new ArrayList<>();
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
             boolean isStatic = match(CLASS);
-            (isStatic ? classMethods : methods).add(function("method"));
+            (isStatic ? classMethods : methods).add(function("method", true));
         }
 
         consume(RIGHT_BRACE, "Expect '}' after class body.");
@@ -200,25 +200,37 @@ class Parser {
         return new Stmt.Expression(expr);
     }
 
+    // Challenge 12.2 - Extend Lox to support getter methods
+    // Function handling for only regular functions, not getters
     private Stmt.Function function(String kind) {
-        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
-        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-        List<Token> parameters = new ArrayList<>();
-        if (!check(RIGHT_PAREN)) {
-            do {
-                if (parameters.size() >= 255) {
-                    error(peek(), "Can't have more than 255 parameters.");
-                }
+        return function(kind, false);
+    }
 
-                parameters.add(
-                    consume(IDENTIFIER, "Expect parameter name."));
-            } while (match(COMMA));
+    // Challenge 12.2 - Extend Lox to support getter methods
+    // Parses a function declaration, optionally allowing getter methods
+    // If allowGetter is true and the function has no parameters, it is treated as a getter
+    private Stmt.Function function(String kind, boolean allowGetter) {
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+        boolean isGetter = allowGetter && !check(LEFT_PAREN);
+        List<Token> parameters = new ArrayList<>();
+        if (!isGetter) {
+            consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+            if (!check(RIGHT_PAREN)) {
+                do {
+                    if (parameters.size() >= 255) {
+                        error(peek(), "Can't have more than 255 parameters.");
+                    }
+
+                    parameters.add(
+                        consume(IDENTIFIER, "Expect parameter name."));
+                } while (match(COMMA));
+            }
+            consume(RIGHT_PAREN, "Expect ')' after parameters.");
         }
-        consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
         consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
         List<Stmt> body = block();
-        return new Stmt.Function(name, parameters, body);
+        return new Stmt.Function(name, parameters, body, isGetter);
     }
 
     // assignment     → IDENTIFIER "=" assignment | or ;
