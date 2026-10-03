@@ -355,6 +355,10 @@ public class Interpreter implements Expr.Visitor<Object>,
             case STAR:
                 checkNumberOperands(expr.operator, left, right);
                 return (double)left * (double)right;
+            // Challenge 13.3 - Implement modulo operator
+            case MODULO:
+                checkNumberOperands(expr.operator, left, right);
+                return (double)left % (double)right;
             case BANG_EQUAL: return !isEqual(left, right);
             case EQUAL_EQUAL: return isEqual(left, right);
             default:

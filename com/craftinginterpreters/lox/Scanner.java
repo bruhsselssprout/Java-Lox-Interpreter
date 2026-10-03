@@ -69,6 +69,9 @@ class Scanner {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break;
+            
+            // Challenge 13.3 - Implement modulo operator
+            case '%': addToken(MODULO); break;
 
             // Handle one or two character tokens.
             case '!':

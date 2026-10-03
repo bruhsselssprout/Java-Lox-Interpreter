@@ -313,7 +313,8 @@ class Parser {
     private Expr factor() {
         Expr expr = unary();
 
-        while (match(SLASH, STAR)) {
+        // Challenge 13.3 - Implement modulo operator in the parser
+        while (match(SLASH, STAR, MODULO)) {
             Token operator = previous();
             Expr right = unary();
             expr = new Expr.Binary(expr, operator, right);
